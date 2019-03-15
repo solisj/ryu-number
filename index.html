@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    white-space: pre-line;
+
+    background: lightslategray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    border: 1px solid white;
+  }
+  </style>
+</head>
+
+<body>
+
+<button onclick="myFunction()">Try it</button>
+
+<div style="word-wrap: break-word; width: 800px">
+
+<pre>
+
+<p id="demo1"></p>
+
+<p id="demo2"></p>
+
+</pre>
+
+</div>
+
+<script>
+function myFunction() {
+  var char = prompt("Please enter the name of a character", "Mario");
+  if (char != null) {
+    var text = retrieve_text(char);
+    document.getElementById("demo1").innerHTML = text[0];
+    document.getElementById("demo2").innerHTML = text[1];
+  }
+}
+</script>
+
+<!--
+
+<div style="color:black;">
+
+<p>Ryu number 0:</p>
+
+<p id="ryu0"></p>
+
+<p>Ryu number 1:</p>
+
+<p id="ryu1"></p>
+
+<p>Ryu number 2:</p>
+
+<p id="ryu2"></p>
+
+<p>Ryu number 3:</p>
+
+<p id="ryu3"></p>
+
+<p>Ryu number 4:</p>
+
+<p id="ryu4"></p>
+
+<p>Ryu number 5:</p>
+
+<p id="ryu5"></p>
+
+<p>Ryu number 6:</p>
+
+<p id="ryu6"></p>
+
+<p>Ryu number infinity:</p>
+
+<p id="imp"></p>
+
+-->
+
+<script>
+  function make_dict_from_games(games){ //make a dictionary of which characters have been in which games with other characters based on the provided games dictionary
+    var dict = {};
+    for (var key in games){ //go through all the keys (i.e. all of the games)
+      var characters = games[key]; 
+      for (var i = 0; i < characters.length; i++){
+        var own_name = characters[i];
+        for (var j = 0; j < characters.length; j++){
+          if (i != j){
+            var other_name = characters[j];
+            if (!(own_name in dict)){
+              dict[own_name] = [];
+            }
+            dict[own_name].push(other_name);
+          }
+        }
+      }
+    }
+    return dict;
+  }
+  function get_all_chars(games){
+    var all_chars = [];
+    for (var key in games){
+      var chars = games[key];
+      for (var i = 0; i < chars.length; i++){
+        var char = chars[i];
+        if (!(all_chars.indexOf(char) != -1)){
+          all_chars.push(char);
+        }
+      }
+    }
+    return all_chars;
+  }
+  function make_game_dict_from_games(games){ //convert dictionary that has keys of games and values of chars to one that has keys of chars and values of dictionaries which themselves have keys of chars and values of games in which they appeared together
+    var game_dict = {};
+    for (var key in games){ //go through all the keys (i.e. all of the games)
+      var characters = games[key]; 
+      for (var i = 0; i < characters.length; i++){
+        var own_name = characters[i];
+        for (var j = 0; j < characters.length; j++){
+          if (i != j){
+            var other_name = characters[j];
+            if (!(own_name in game_dict)){
+              game_dict[own_name] = {};
+            }
+            game_dict[own_name][other_name] = key; //key is name of game
+          }
+        }
+      }
+    }
+    return game_dict;
+  }
+  function get_path(dict, char1, char2){ //given dict of which chars have been with which others, as well as two chars, give path from one to the other
+    if (char1 === char2){
+      return [char1]; //return list of length one if both chars are the same
+    }
+
+    var queue = [char1];
+    var visited_chars = [char1]; //initialize list that will have all previously visited chars
+    var predecessor = {};
+    var tail = 0;
+    while (queue.length > 0){
+      var u = queue[queue.length-1]; //pop a vertex off the queue
+      queue.splice(queue.length-1,1);
+
+      //tail++;
+      var neighbors = dict[u]; //get neighbors
+
+      for (var i = 0; i < neighbors.length; i++) {
+        var v = neighbors[i];
+        if (visited_chars.indexOf(v) != -1){
+          continue;
+        }
+        visited_chars.push(v);
+        if (v == char2){ //check if the path is complete
+          var path = [v]; //if so, backwards through the path
+          while (u !== char1){
+            path.push(u);
+            u = predecessor[u];
+          }
+          path.push(u);
+          path.reverse();
+          return path;
+        }
+        predecessor[v] = u;
+        queue.push(v);
+      }
+    }
+    return false;
+  }
+
+  function get_game_path(game_dict, path){ //expecting a path from one char to another
+    if (!path){ //if theres no path then return false
+      return false;
+    } else if(path.length === 1){
+      return [];
+    }
+    var game_path = [];
+    for (var i = 0; i < path.length - 1; i++){ //go through all adjacent pairs of chars
+      var char1 = path[i];
+      var char2 = path[i+1];
+      game_path.push(game_dict[char1][char2]);
+    }
+    return game_path;
+  }
+
+  var games = {
+               "Super Smash Bros. Ultimate":["Mario","Diddy Kong","Ryu","Solid Snake", "Simon Belmont", "Sonic","Joker","Cloud"],
+               "Street Fighter Online: Mouse Generation":["Ryu","Barack Obama"],
+               "Diddy Kong Racing":["Diddy Kong","Banjo the Bear"],
+               "Street Fighter X Tekken":["Ryu","Heihachi"],
+               "PlayStation All-Stars Battle Royale":["Kratos","Heihachi"],
+               "Mortal Kombat (2011 video game)":["Sub-Zero","Kratos","Scorpion"],
+               "Super Smash Bros. (video game)":["Mario","Donkey Kong", "Kirby", "Link", "Pikachu", "Samus",
+                                                 "Yoshi", "Fox","Jigglypuff", "Luigi", "Ness", "Captain Falcon"],
+               "Injustice 2":["Sub-Zero","Raphael","Superman"],
+               "Marvel vs. Capcom 2: New Age of Heroes":["Ryu","Hulk","Iron Man"],
+               "Fighting Vipers":["Bahn","Pepsiman"],
+               "Project X Zone":["Ryu","Bahn"],
+               "Poker Night at the Inventory":["Heavy Weapons Guy","Reginald Van Winslow"],
+               "Poker Night 2":["Reginald Van Winslow","GLaDOS"],
+               "Portal 2":["P-Body","GLaDOS"],
+               "Super Bomberman R (Windows version)":["P-Body","Pink Bomber", "Aqua Bomber"],
+               "Super Bomberman R (Switch version)":["Solid Snake","Simon Belmont","Pink Bomber", "Aqua Bomber"],
+               "Sonic & All-Stars Racing Transformed (Windows version)":["Sonic","Heavy Weapons Guy"],
+               "Tony Hawk's Underground 2":["Tony Hawk", "Shrek"],
+               "Tony Hawk's Underground":["Tony Hawk","Iron Man"],
+               "NBA Street V3":["Shaq","Mario","Luigi","Princess Peach"],
+               "Final Fantasy Brave Exvius":["Cloud","Katy Perry"],
+               "The Fight Before Christmas":["Katy Perry","Bart Simpson"],
+               "The Simpsons: Road Rage":["Bart Simpson","Grampa Simpson"],
+               "Obama Marriage":["Barack Obama","Michelle Obama"],
+               "youtu.be/Hhg5F_azlkY":["Michelle Obama","Penguins from Madagascar"],
+               "Madagascar: Escape 2 Africa (video game)":["Penguins from Madagascar","Gloria from Madagascar"],
+               "Kingdom Hearts (video game)":["Cloud","Sora"]
+               };
+  var dict = make_dict_from_games(games);
+  var all_chars = get_all_chars(games); 
+  var game_dict = make_game_dict_from_games(games);
+
+  function retrieve_text(char){
+    var path = get_path(dict, char, "Ryu");
+    var game_path = get_game_path(game_dict, path);
+    var text_for_number = char + " has a Ryu number of " + String(path.length) + ".";
+    var text_for_game_path = "";
+    if (game_path.length >= 1){
+      for (var i = 0; i < path.length - 1; i++){
+        var char1 = path[i];
+        var game = game_path[i];
+        var char2 = path[i+1];
+        text_for_game_path += (char1 + " was in " + game + " with " + char2 + ". ");
+      }
+    }
+    return [text_for_number, text_for_game_path];
+  }
+
+  var ryu_number = [];
+  for (var i = 0; i <= all_chars.length; i++){
+    ryu_number.push([]);
+  }
+  for (var i = 0; i < all_chars.length; i++){
+    var char = all_chars[i];
+    var path = get_path(dict, char, "Ryu");
+    if (path){
+      var index = Math.floor(path.length - 1 + 0.1);
+      var game_path = get_game_path(game_dict, path);
+      ryu_number[index].push(char + ": " + String(game_path) + ";");
+    }
+    else{
+      ryu_number[all_chars.length].push(index);
+    }
+  }
+  /*document.getElementById("ryu0").innerHTML = ryu_number[0];
+  document.getElementById("ryu1").innerHTML = ryu_number[1];
+  document.getElementById("ryu2").innerHTML = ryu_number[2];
+  document.getElementById("ryu3").innerHTML = ryu_number[3];
+  document.getElementById("ryu4").innerHTML = ryu_number[4];
+  document.getElementById("ryu5").innerHTML = ryu_number[5];
+  document.getElementById("ryu6").innerHTML = ryu_number[6];
+  document.getElementById("imp").innerHTML = ryu_number[ryu_number.length-1];*/
+
+</script>
+</html>
