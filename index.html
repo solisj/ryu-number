@@ -227,12 +227,12 @@ function myFunction() {
   var game_dict = make_game_dict_from_games(games);
 
   function retrieve_text(char){
-    if (!(char in all_chars)){
+    if (all_chars.indexOf(char) === -1){
       return ["There is no available data for " + char + ".",""];
     }
     var path = get_path(dict, char, "Ryu");
     var game_path = get_game_path(game_dict, path);
-    var text_for_number = char + " has a Ryu number of " + String(path.length) + ".";
+    var text_for_number = char + " has a Ryu number of " + String(path.length-1) + ".";
     var text_for_game_path = "";
     if (game_path.length >= 1){
       for (var i = 0; i < path.length - 1; i++){
