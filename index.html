@@ -227,6 +227,9 @@ function myFunction() {
   var game_dict = make_game_dict_from_games(games);
 
   function retrieve_text(char){
+    if (!(char in all_chars)){
+      return ["There is no available data for " + char + ".",""];
+    }
     var path = get_path(dict, char, "Ryu");
     var game_path = get_game_path(game_dict, path);
     var text_for_number = char + " has a Ryu number of " + String(path.length) + ".";
